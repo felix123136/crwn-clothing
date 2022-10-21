@@ -5,6 +5,7 @@ import {
   signInWithRedirect,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
 
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
@@ -38,16 +39,22 @@ const db = getFirestore(app);
 // create an instance of our auth
 export const auth = getAuth();
 export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, provider);
 
-export const createUserDocumentFromAuth = async (userAuth) => {
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
+  if (!userAuth) return;
   // docRef is basically the reference or where the document is living
   // it always returns value even though there's no such document inside our database.
   // The reason why is so that we can easily set document inside it using setDoc and just passing
   // this reference
-  const docRef = doc(db, "users", userAuth.uid);
+  const userDocRef = doc(db, "users", userAuth.uid);
 
   // using that reference, we use getDoc to read the document inside the reference
-  const userSnapshot = await getDoc(docRef);
+  const userSnapshot = await getDoc(userDocRef);
 
   // there's a method to check whether there's document inside the reference.
   // we can simply use it to check if there's already user id in the database
@@ -58,14 +65,20 @@ export const createUserDocumentFromAuth = async (userAuth) => {
 
     // set document inside the reference we got using doc method
     try {
-      await setDoc(docRef, {
+      await setDoc(userDocRef, {
         displayName,
         email,
         createdAt,
+        ...additionalInformation,
       });
     } catch (e) {
       console.log(e);
     }
   }
-  return docRef;
+  return userDocRef;
+};
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+  return await createUserWithEmailAndPassword(auth, email, password);
 };
