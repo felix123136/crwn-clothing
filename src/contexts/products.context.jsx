@@ -2,7 +2,7 @@ import { createContext, useState } from "react";
 import PRODUCTS from "../shop_data.json";
 
 export const ProductsContext = createContext({
-  products: null,
+  products: [],
   setProducts: () => null,
 });
 
